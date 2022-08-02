@@ -1,11 +1,17 @@
-node_modules
+.editorconfig
 .env
+
+node_modules/
+
 coverage
 coverage.json
-typechain
-typechain-types
 
-#Hardhat files
-cache
-artifacts
+typechain/
+typechain-types/
 
+# Hardhat files
+cache/
+artifacts/
+
+# Remix
+.deps/
