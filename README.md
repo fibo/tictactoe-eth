@@ -6,6 +6,6 @@
 
 Install deps: `npm install`
 Tests: `npm test`
-Link: `npm run hardhat:check`
-Cleanup: `npm run hardhat:clean`
+Lint: `npm run check`
+Cleanup: `npm run clean`
 
