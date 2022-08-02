@@ -4,17 +4,22 @@
   "private": true,
   "description": "",
   "scripts": {
+    "check": "npm run tsc--noEmit; npm run hardhat:check",
     "hardhat": "hardhat",
+    "hardhat:check": "hardhat check",
     "hardhat:clean": "hardhat clean",
     "hardhat:compile": "hardhat compile",
     "hardhat:test": "hardhat test",
-    "test": "npm run hardhat:test"
+    "test": "npm run tsc--noEmit; npm run hardhat:test",
+    "tsc--noEmit": "tsc --noEmit --project ."
   },
   "keywords": [],
   "author": "Gianluca Casati (http://fibo.github.io/)",
   "license": "MIT",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
-    "hardhat": "^2.10.1"
+    "@nomiclabs/hardhat-solhint": "^2.0.1",
+    "hardhat": "^2.10.1",
+    "typescript": "^4.7.4"
   }
 }
