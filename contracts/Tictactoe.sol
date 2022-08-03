@@ -10,11 +10,10 @@ error CannotJoinGameWhilePlaying();
 /// A player choose a grid position but it was already taken.
 error GridPositionAlreadyTaken();
 
-/// A player try to do some game move but the game is not playing yet.
-error NotPlaying();
-
 /// A player try to do some game move but it is not his/her turn.
-error NotYourTurn();
+/// A player try to move but it is not player one not player two.
+/// A player try to do some game move but the game is not started yet.
+error CannotMoveNow();
 
 contract Tictactoe {
     enum Player {
@@ -33,6 +32,7 @@ contract Tictactoe {
     GameStatus public gameStatus;
 
     enum GridPosition {
+        Space0,
         Space1,
         Space2,
         Space3,
@@ -40,8 +40,7 @@ contract Tictactoe {
         Space5,
         Space6,
         Space7,
-        Space8,
-        Space9
+        Space8
     }
 
     uint8 nextChoiceIndex;
@@ -51,14 +50,17 @@ contract Tictactoe {
 
     mapping (GridPosition => bool) public gridPositionIsEmpty;
 
-    event Join(address indexed _player);
+    event Join(address indexed player);
 
-    event GameStatusChange(GameStatus indexed _status);
+    event GameStatusChange(GameStatus indexed gameStatus);
+
+    event Winner(address indexed player);
 
     function startGame() private {
         nextChoiceIndex = 0;
 
         // Reset grid
+        gridPositionIsEmpty[GridPosition.Space0] = true;
         gridPositionIsEmpty[GridPosition.Space1] = true;
         gridPositionIsEmpty[GridPosition.Space2] = true;
         gridPositionIsEmpty[GridPosition.Space3] = true;
@@ -67,7 +69,6 @@ contract Tictactoe {
         gridPositionIsEmpty[GridPosition.Space6] = true;
         gridPositionIsEmpty[GridPosition.Space7] = true;
         gridPositionIsEmpty[GridPosition.Space8] = true;
-        gridPositionIsEmpty[GridPosition.Space9] = true;
 
         gameStatus = GameStatus.Playing;
         emit GameStatusChange(GameStatus.Playing);
@@ -96,15 +97,47 @@ contract Tictactoe {
         emit GameStatusChange(GameStatus.WaitingForPlayerOne);
     }
 
-    function isWinner () private view returns (bool) {
-        if (nextChoiceIndex <= 3)
+    function semiSumInZ3xZ3 (uint8 index1, uint8 index2) private pure returns (uint8) {
+        uint8 x1 = index1 % 3;
+        uint8 y1 = (index1 - x1) / 3;
+
+        uint8 x2 = index2 % 3;
+        uint8 y2 = (index2 - x2) / 3;
+
+        uint8 x3 = ((x1 + x2) * 2) % 3;
+        uint8 y3 = ((y1 + y2) * 2) % 3;
+
+        return x3 + 3 * y3;
+    }
+
+    function isWinCombination (uint8 index1, uint8 index2, uint8 index3) private pure returns (bool) {
+        if (semiSumInZ3xZ3(index1, index2) != index3)
             return false;
         return true;
     }
 
-    function move (GridPosition _gridPosition) external {
+    function isWinner () private view returns (bool) {
+        if (nextChoiceIndex <= 4)
+            return false;
+
+        uint8 numPlayers = 2;
+        uint8 firstIndexOfCurrentPlayer = nextChoiceIndex % 2;
+        uint8 endOfThirdIndex = nextChoiceIndex;
+        uint8 endOfSecondIndex = endOfThirdIndex - numPlayers;
+        uint8 endOfFirstIndex = endOfSecondIndex - numPlayers;
+
+        for (uint8 i = firstIndexOfCurrentPlayer; i <= endOfFirstIndex; i += numPlayers)
+            for (uint8 j = i + numPlayers; j <= endOfSecondIndex; j += numPlayers)
+                for (uint8 k = j + numPlayers; k <= endOfThirdIndex; k += numPlayers)
+                    if (isWinCombination(i, j, k))
+                        return true;
+
+        return false;
+    }
+
+    function move (GridPosition gridPosition) external {
         if(gameStatus != GameStatus.Playing)
-            revert NotPlaying();
+            revert CannotMoveNow();
 
         // Player is an enum where
         //     PlayerOne = 0
@@ -118,16 +151,19 @@ contract Tictactoe {
         }
 
         if(msg.sender != player[currentPlayer])
-            revert NotYourTurn();
+            revert CannotMoveNow();
 
-        if (!gridPositionIsEmpty[_gridPosition])
+        if (!gridPositionIsEmpty[gridPosition])
             revert GridPositionAlreadyTaken();
 
-        playerChoice[nextChoiceIndex] = _gridPosition;
+        playerChoice[nextChoiceIndex] = gridPosition;
 
-        if (isWinner())
+        if (isWinner()) {
+            emit Winner(player[currentPlayer]);
             endGame();
+        }
 
+        // Increment nextChoiceIndex only after isWinner() run
         nextChoiceIndex++;
 
         if (nextChoiceIndex == 8)
