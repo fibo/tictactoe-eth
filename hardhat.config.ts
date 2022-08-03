@@ -1,4 +1,3 @@
-import "@nomiclabs/hardhat-solhint";
 import "@nomicfoundation/hardhat-toolbox";
 import type { HardhatUserConfig } from "hardhat/config";
 
