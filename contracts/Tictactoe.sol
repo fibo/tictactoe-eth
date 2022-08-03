@@ -1,21 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-/// A player join game twice.
-error CannotPlayAgainstYourSelf();
-
 /// A player join game but other players are already playing.
 error CannotJoinGameWhilePlaying();
-
-/// A player choose a grid position but it was already taken.
-error GridPositionAlreadyTaken();
 
 /// A player try to do some game move but it is not his/her turn.
 /// A player try to move but it is not player one not player two.
 /// A player try to do some game move but the game is not started yet.
 error CannotMoveNow();
 
+/// A player join game twice.
+error CannotPlayAgainstYourSelf();
+
+/// A player choose a grid position but it was already taken.
+error GridPositionAlreadyTaken();
+
+/// Some address tries to perform an action is not authorized to do.
+/// For example some address other than the owner try to burn the contract.
+error PermissionDenied();
+
 contract Tictactoe {
+    address owner;
+
     enum Player {
         PlayerOne,
         PlayerTwo
@@ -55,6 +61,15 @@ contract Tictactoe {
     event GameStatusChange(GameStatus indexed gameStatus);
 
     event Winner(address indexed player);
+
+    constructor () payable {
+        owner = msg.sender;
+    }
+
+    function burn () external {
+        if (msg.sender != owner) revert PermissionDenied();
+        selfdestruct(payable(owner));
+    }
 
     function startGame() private {
         nextChoiceIndex = 0;
@@ -97,23 +112,16 @@ contract Tictactoe {
         emit GameStatusChange(GameStatus.WaitingForPlayerOne);
     }
 
-    function semiSumInZ3xZ3 (uint8 index1, uint8 index2) private pure returns (uint8) {
-        uint8 x1 = index1 % 3;
-        uint8 y1 = (index1 - x1) / 3;
-
-        uint8 x2 = index2 % 3;
-        uint8 y2 = (index2 - x2) / 3;
-
-        uint8 x3 = ((x1 + x2) * 2) % 3;
-        uint8 y3 = ((y1 + y2) * 2) % 3;
-
-        return x3 + 3 * y3;
-    }
-
-    function isWinCombination (uint8 index1, uint8 index2, uint8 index3) private pure returns (bool) {
-        if (semiSumInZ3xZ3(index1, index2) != index3)
-            return false;
-        return true;
+    function isWinCombination (uint8 index1, uint8 index2, uint8 index3) public pure returns (bool) {
+        if (index1 == 0 && index2 == 1 && index3 == 2) return true;
+        if (index1 == 0 && index2 == 4 && index3 == 8) return true;
+        if (index1 == 0 && index2 == 3 && index3 == 6) return true;
+        if (index1 == 1 && index2 == 4 && index3 == 7) return true;
+        if (index1 == 2 && index2 == 4 && index3 == 6) return true;
+        if (index1 == 2 && index2 == 5 && index3 == 8) return true;
+        if (index1 == 3 && index2 == 4 && index3 == 5) return true;
+        if (index1 == 6 && index2 == 7 && index3 == 8) return true;
+        return false;
     }
 
     function isWinner () private view returns (bool) {
@@ -155,6 +163,7 @@ contract Tictactoe {
 
         if (!gridPositionIsEmpty[gridPosition])
             revert GridPositionAlreadyTaken();
+        gridPositionIsEmpty[gridPosition] = false;
 
         playerChoice[nextChoiceIndex] = gridPosition;
 
