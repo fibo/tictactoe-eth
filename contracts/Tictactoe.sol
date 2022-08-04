@@ -125,7 +125,7 @@ contract Tictactoe {
     }
 
     function isWinner () private view returns (bool) {
-        if (nextChoiceIndex <= 4)
+        if (nextChoiceIndex < 4)
             return false;
 
         uint8 numPlayers = 2;
@@ -136,9 +136,10 @@ contract Tictactoe {
 
         for (uint8 i = firstIndexOfCurrentPlayer; i <= endOfFirstIndex; i += numPlayers)
             for (uint8 j = i + numPlayers; j <= endOfSecondIndex; j += numPlayers)
-                for (uint8 k = j + numPlayers; k <= endOfThirdIndex; k += numPlayers)
-                    if (isWinCombination(i, j, k))
+                for (uint8 k = j + numPlayers; k <= endOfThirdIndex; k += numPlayers) {
+                    if (isWinCombination(uint8(playerChoice[i]), uint8(playerChoice[j]), uint8(playerChoice[k])))
                         return true;
+                }
 
         return false;
     }
