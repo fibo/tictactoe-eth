@@ -1,8 +1,10 @@
 {
   "name": "tictactoe-eth",
+  "description": "Play tic tac toe - with Solidity",
   "version": "0.0.0",
   "private": true,
-  "description": "",
+  "license": "MIT",
+  "author": "Gianluca Casati (http://fibo.github.io/)",
   "scripts": {
     "check": "npm run hardhat:check",
     "clean": "npm run hardhat:clean",
@@ -17,9 +19,6 @@
     "test": "npm run hardhat:test",
     "tsc--noEmit": "tsc --noEmit --project ."
   },
-  "keywords": [],
-  "author": "Gianluca Casati (http://fibo.github.io/)",
-  "license": "MIT",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
     "dot-editorconfig": "^1.2.0",
