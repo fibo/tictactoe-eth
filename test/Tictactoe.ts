@@ -29,74 +29,80 @@ const event = {
   Winner: "Winner",
 };
 
-describe("Tictactoe", function () {
+const CONTRACT_NAME = "Tictactoe";
+
+const deployContract = (contractName: string) => async () => {
+  const Contract = await ethers.getContractFactory(contractName);
+  const contract = await Contract.deploy();
+  return contract;
+};
+
+const getContract = deployContract(CONTRACT_NAME);
+
+describe(CONTRACT_NAME, function () {
   async function deployFixture() {
     const [owner, player1, player2, otherAccount] = await ethers.getSigners();
-
-    const Tictactoe = await ethers.getContractFactory("Tictactoe");
-    const tictactoe = await Tictactoe.deploy();
-
-    return { tictactoe, owner, player1, player2, otherAccount };
+    const contract = await getContract();
+    return { contract, owner, player1, player2, otherAccount };
   }
 
   async function startGameFixture() {
     const [owner, player1, player2, otherAccount] = await ethers.getSigners();
 
-    const Tictactoe = await ethers.getContractFactory("Tictactoe");
-    const tictactoe = await Tictactoe.deploy();
+    const contract = await getContract();
 
-    await tictactoe.connect(player1).join();
-    await tictactoe.connect(player2).join();
+    await contract.connect(player1).join();
+    await contract.connect(player2).join();
 
-    return { tictactoe, owner, player1, player2, otherAccount };
+    return { contract, owner, player1, player2, otherAccount };
   }
 
   describe("Deployment", function () {
     it("starts with default status", async function () {
-      const { tictactoe } = await loadFixture(deployFixture);
-      expect(await tictactoe.gameStatus()).to.equal(WaitingForPlayerOne);
+      const { contract } = await loadFixture(deployFixture);
+      expect(await contract.gameStatus()).to.equal(WaitingForPlayerOne);
     });
   });
 
   describe("join()", function () {
     it("update status to WaitingForPlayerTwo  and emit event on first join", async function () {
-      const { tictactoe, player1 } = await loadFixture(deployFixture);
-      await expect(await tictactoe.connect(player1).join())
-        .to.emit(tictactoe, event.GameStatusChange)
+      const { contract, player1 } = await loadFixture(deployFixture);
+      await expect(await contract.connect(player1).join())
+        .to.emit(contract, event.GameStatusChange)
         .withArgs(WaitingForPlayerTwo);
-      expect(await tictactoe.gameStatus()).to.equal(WaitingForPlayerTwo);
+      expect(await contract.gameStatus()).to.equal(WaitingForPlayerTwo);
     });
 
     it("update status to Playing and emit event on second join", async function () {
-      const { tictactoe, player1, player2 } = await loadFixture(deployFixture);
-      await tictactoe.connect(player1).join();
-      await expect(await tictactoe.connect(player2).join())
-        .to.emit(tictactoe, event.GameStatusChange)
+      const { contract, player1, player2 } = await loadFixture(deployFixture);
+      await contract.connect(player1).join();
+      await expect(await contract.connect(player2).join())
+        .to.emit(contract, event.GameStatusChange)
         .withArgs(Playing);
-      expect(await tictactoe.gameStatus()).to.equal(Playing);
+      expect(await contract.gameStatus()).to.equal(Playing);
     });
 
     it("does not allow to play againt your self", async function () {
-      const { tictactoe, player1 } = await loadFixture(deployFixture);
-      await tictactoe.connect(player1).join();
+      const { contract, player1 } = await loadFixture(deployFixture);
+      await contract.connect(player1).join();
       await expect(
-        tictactoe.connect(player1).join()
+        contract.connect(player1).join()
       ).to.be.revertedWithCustomError(
-        tictactoe,
+        contract,
         error.CannotPlayAgainstYourSelf
       );
     });
 
     it("does not allow a third player to join", async function () {
-      const { tictactoe, player1, player2, otherAccount } = await loadFixture(
+      const { contract, player1, player2, otherAccount } = await loadFixture(
         deployFixture
       );
-      await tictactoe.connect(player1).join();
-      await tictactoe.connect(player2).join();
+      await contract.connect(player1).join();
+      await contract.connect(player2).join();
       await expect(
-        tictactoe.connect(otherAccount).join()
+        contract.connect(otherAccount).join()
       ).to.be.revertedWithCustomError(
-        tictactoe,
+        contract,
         error.CannotJoinGameWhilePlaying
       );
     });
@@ -104,77 +110,74 @@ describe("Tictactoe", function () {
 
   describe("move()", function () {
     it("cannot be called if not playing", async function () {
-      const { tictactoe, player1, player2 } = await loadFixture(deployFixture);
-      await tictactoe.connect(player1).join();
+      const { contract, player1, player2 } = await loadFixture(deployFixture);
+      await contract.connect(player1).join();
       await expect(
-        tictactoe.connect(player2).move(Space1)
-      ).to.be.revertedWithCustomError(tictactoe, error.CannotMoveNow);
+        contract.connect(player2).move(Space1)
+      ).to.be.revertedWithCustomError(contract, error.CannotMoveNow);
     });
 
     it("does not allow to choose the same space twice", async function () {
-      const { tictactoe, player1, player2 } = await loadFixture(
+      const { contract, player1, player2 } = await loadFixture(
         startGameFixture
       );
-      await tictactoe.connect(player1).move(Space1);
+      await contract.connect(player1).move(Space1);
       await expect(
-        tictactoe.connect(player2).move(Space1)
-      ).to.be.revertedWithCustomError(
-        tictactoe,
-        error.GridPositionAlreadyTaken
-      );
+        contract.connect(player2).move(Space1)
+      ).to.be.revertedWithCustomError(contract, error.GridPositionAlreadyTaken);
     });
 
     it("checks that player moves during his/her turn", async function () {
-      const { tictactoe, player1, player2 } = await loadFixture(
+      const { contract, player1, player2 } = await loadFixture(
         startGameFixture
       );
-      await tictactoe.connect(player1).move(Space1);
-      await tictactoe.connect(player2).move(Space2);
+      await contract.connect(player1).move(Space1);
+      await contract.connect(player2).move(Space2);
       await expect(
-        tictactoe.connect(player2).move(Space3)
-      ).to.be.revertedWithCustomError(tictactoe, error.CannotMoveNow);
+        contract.connect(player2).move(Space3)
+      ).to.be.revertedWithCustomError(contract, error.CannotMoveNow);
     });
 
     it("does not allow to move players other than player1 and player2", async function () {
-      const { tictactoe, player1, player2, otherAccount } = await loadFixture(
+      const { contract, player1, player2, otherAccount } = await loadFixture(
         startGameFixture
       );
-      await tictactoe.connect(player1).move(Space1);
-      await tictactoe.connect(player2).move(Space2);
+      await contract.connect(player1).move(Space1);
+      await contract.connect(player2).move(Space2);
       await expect(
-        tictactoe.connect(otherAccount).move(Space3)
-      ).to.be.revertedWithCustomError(tictactoe, error.CannotMoveNow);
+        contract.connect(otherAccount).move(Space3)
+      ).to.be.revertedWithCustomError(contract, error.CannotMoveNow);
     });
   });
 
   describe("isWinCombination", async function () {
     it("works", async function () {
-      const { tictactoe } = await loadFixture(startGameFixture);
+      const { contract } = await loadFixture(startGameFixture);
 
-      expect(await tictactoe.isWinCombination(0, 1, 2)).to.be.true;
-      expect(await tictactoe.isWinCombination(0, 4, 8)).to.be.true;
-      expect(await tictactoe.isWinCombination(0, 3, 6)).to.be.true;
-      expect(await tictactoe.isWinCombination(1, 4, 7)).to.be.true;
-      expect(await tictactoe.isWinCombination(2, 4, 6)).to.be.true;
-      expect(await tictactoe.isWinCombination(2, 5, 8)).to.be.true;
-      expect(await tictactoe.isWinCombination(3, 4, 5)).to.be.true;
-      expect(await tictactoe.isWinCombination(6, 7, 8)).to.be.true;
+      expect(await contract.isWinCombination(0, 1, 2)).to.be.true;
+      expect(await contract.isWinCombination(0, 4, 8)).to.be.true;
+      expect(await contract.isWinCombination(0, 3, 6)).to.be.true;
+      expect(await contract.isWinCombination(1, 4, 7)).to.be.true;
+      expect(await contract.isWinCombination(2, 4, 6)).to.be.true;
+      expect(await contract.isWinCombination(2, 5, 8)).to.be.true;
+      expect(await contract.isWinCombination(3, 4, 5)).to.be.true;
+      expect(await contract.isWinCombination(6, 7, 8)).to.be.true;
     });
   });
 
   describe("Game", function () {
     it("win with combination [0, 1, 2]", async function () {
-      const { tictactoe, player1, player2 } = await loadFixture(
+      const { contract, player1, player2 } = await loadFixture(
         startGameFixture
       );
-      await tictactoe.connect(player1).move(Space0);
-      await tictactoe.connect(player2).move(Space7);
-      await tictactoe.connect(player1).move(Space1);
-      await tictactoe.connect(player2).move(Space8);
-      await expect(await tictactoe.connect(player1).move(Space2))
-        .to.emit(tictactoe, event.Winner)
+      await contract.connect(player1).move(Space0);
+      await contract.connect(player2).move(Space7);
+      await contract.connect(player1).move(Space1);
+      await contract.connect(player2).move(Space8);
+      await expect(await contract.connect(player1).move(Space2))
+        .to.emit(contract, event.Winner)
         .withArgs(player1.address);
-      expect(await tictactoe.gameStatus()).to.equal(WaitingForPlayerOne);
+      expect(await contract.gameStatus()).to.equal(WaitingForPlayerOne);
     });
   });
 });

@@ -8,10 +8,12 @@
   "scripts": {
     "check": "npm run hardhat:check",
     "clean": "npm run hardhat:clean",
+    "deploy:contract:localhost": "hardhat run scripts/deploy.ts --network localhost",
     "hardhat": "hardhat",
     "hardhat:check": "hardhat check",
     "hardhat:clean": "hardhat clean",
     "hardhat:compile": "hardhat compile",
+    "hardhat:node": "hardhat node",
     "hardhat:test": "hardhat test",
     "prehardhat:check": "npm run tsc--noEmit",
     "pretsc--noEmit": "npm run hardhat:compile",
