@@ -1,14 +1,17 @@
-import { NoWalletDetected } from "./components/NoWalletDetected";
+import { ConnectWallet } from "./components/ConnectWallet";
 import { Tictactoe } from "./components/Tictactoe";
-import contractArtifact from "../contracts/contractArtifact.json";
-import contractAddress from "../contracts/contractAddress.json";
-
-const HARDHAT_NETWORK_ID = "1337";
+import { useWallet } from "./hooks/useWallet";
 
 export default function App() {
-  if (!window.ethereum) {
-    return <NoWalletDetected />;
-  }
+  const { addWalletAddress, resetWallet, walletAddress } = useWallet();
 
-  return <Tictactoe />;
+  if (!walletAddress)
+    return (
+      <ConnectWallet
+        addWalletAddress={addWalletAddress}
+        resetWallet={resetWallet}
+      />
+    );
+
+  return <Tictactoe walletAddress={walletAddress} />;
 }

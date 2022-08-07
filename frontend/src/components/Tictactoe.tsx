@@ -1,5 +1,15 @@
-import {FC} from 'react'
+import { FC } from "react";
+import type { WalletAddress } from "../hooks/useWallet";
+import { useTictactoe } from "../hooks/useTictactoe";
 
-export const Tictactoe: FC => {
-return <div>tictactoe</div>
-}
+type Props = {
+  walletAddress: WalletAddress;
+};
+
+export const Tictactoe: FC<Props> = ({ walletAddress }) => {
+  const tictactoe = useTictactoe(walletAddress);
+
+  if (!tictactoe) return <div>could not find contract</div>;
+
+  return <div>tictactoe</div>;
+};

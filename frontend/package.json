@@ -4,7 +4,13 @@
   "private": true,
   "license": "MIT",
   "author": "Gianluca Casati (http://fibo.github.io/)",
+  "scripts": {
+    "build": "react-scripts build",
+    "start": "react-scripts start",
+    "tsc--noEmit": "tsc --noEmit --project ."
+  },
   "dependencies": {
+    "@metamask/providers": "^9.1.0",
     "@types/node": "^16.11.47",
     "@types/react": "^18.0.15",
     "@types/react-dom": "^18.0.6",
@@ -13,10 +19,6 @@
     "react-dom": "^18.2.0",
     "react-scripts": "^5.0.1",
     "typescript": "^4.7.4"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build"
   },
   "eslintConfig": {
     "extends": [
