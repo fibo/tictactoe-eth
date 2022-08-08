@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
+import './libraries/TictactoeUtils.sol';
+
 /// A player join game but other players are already playing.
 error CannotJoinGameWhilePlaying();
 
@@ -19,7 +21,7 @@ error GridPositionAlreadyTaken();
 /// For example some address other than the owner try to burn the contract.
 error PermissionDenied();
 
-contract Tictactoe {
+contract TictactoeGame {
     address owner;
 
     enum Player {
@@ -113,14 +115,15 @@ contract Tictactoe {
     }
 
     function isWinCombination (uint8 index1, uint8 index2, uint8 index3) public pure returns (bool) {
-        if (index1 == 0 && index2 == 1 && index3 == 2) return true;
-        if (index1 == 0 && index2 == 4 && index3 == 8) return true;
-        if (index1 == 0 && index2 == 3 && index3 == 6) return true;
-        if (index1 == 1 && index2 == 4 && index3 == 7) return true;
-        if (index1 == 2 && index2 == 4 && index3 == 6) return true;
-        if (index1 == 2 && index2 == 5 && index3 == 8) return true;
-        if (index1 == 3 && index2 == 4 && index3 == 5) return true;
-        if (index1 == 6 && index2 == 7 && index3 == 8) return true;
+        if (TictactoeUtils.semiSumInZ3xZ3(index1, index2) == index3) return true;
+        // if (index1 == 0 && index2 == 1 && index3 == 2) return true;
+        // if (index1 == 0 && index2 == 4 && index3 == 8) return true;
+        // if (index1 == 0 && index2 == 3 && index3 == 6) return true;
+        // if (index1 == 1 && index2 == 4 && index3 == 7) return true;
+        // if (index1 == 2 && index2 == 4 && index3 == 6) return true;
+        // if (index1 == 2 && index2 == 5 && index3 == 8) return true;
+        // if (index1 == 3 && index2 == 4 && index3 == 5) return true;
+        // if (index1 == 6 && index2 == 7 && index3 == 8) return true;
         return false;
     }
 

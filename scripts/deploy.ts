@@ -12,7 +12,7 @@ const contractArtifactJsonFilepath = path.join(
   "contractArtifact.json"
 );
 
-const CONTRACT_NAME = "Tictactoe";
+const CONTRACT_NAME = "TictactoeGame";
 
 async function main() {
   if (network.name === "hardhat") {

@@ -1,6 +1,8 @@
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import { deployArtifact } from "./utils";
+import { LIBRARY_NAME } from "./TictactoeUtils";
 
 const WaitingForPlayerOne = 0;
 const WaitingForPlayerTwo = 1;
@@ -29,27 +31,29 @@ const event = {
   Winner: "Winner",
 };
 
-const CONTRACT_NAME = "Tictactoe";
+const CONTRACT_NAME = "TictactoeGame";
 
-const deployContract = (contractName: string) => async () => {
-  const Contract = await ethers.getContractFactory(contractName);
-  const contract = await Contract.deploy();
+const deployContract = async () => {
+  const deployLibrary = deployArtifact(LIBRARY_NAME);
+  const library = await deployLibrary();
+  const deploy = deployArtifact(CONTRACT_NAME, {
+    libraries: { [LIBRARY_NAME]: library.address },
+  });
+  const contract = await deploy();
   return contract;
 };
 
-const getContract = deployContract(CONTRACT_NAME);
-
-describe(CONTRACT_NAME, function () {
+describe(CONTRACT_NAME, () => {
   async function deployFixture() {
     const [owner, player1, player2, otherAccount] = await ethers.getSigners();
-    const contract = await getContract();
+    const contract = await deployContract();
     return { contract, owner, player1, player2, otherAccount };
   }
 
   async function startGameFixture() {
     const [owner, player1, player2, otherAccount] = await ethers.getSigners();
 
-    const contract = await getContract();
+    const contract = await deployContract();
 
     await contract.connect(player1).join();
     await contract.connect(player2).join();
@@ -57,15 +61,15 @@ describe(CONTRACT_NAME, function () {
     return { contract, owner, player1, player2, otherAccount };
   }
 
-  describe("Deployment", function () {
-    it("starts with default status", async function () {
+  describe("Deployment", () => {
+    it("starts with default status", async () => {
       const { contract } = await loadFixture(deployFixture);
       expect(await contract.gameStatus()).to.equal(WaitingForPlayerOne);
     });
   });
 
-  describe("join()", function () {
-    it("update status to WaitingForPlayerTwo  and emit event on first join", async function () {
+  describe("join()", () => {
+    it("update status to WaitingForPlayerTwo  and emit event on first join", async () => {
       const { contract, player1 } = await loadFixture(deployFixture);
       await expect(await contract.connect(player1).join())
         .to.emit(contract, event.GameStatusChange)
@@ -73,7 +77,7 @@ describe(CONTRACT_NAME, function () {
       expect(await contract.gameStatus()).to.equal(WaitingForPlayerTwo);
     });
 
-    it("update status to Playing and emit event on second join", async function () {
+    it("update status to Playing and emit event on second join", async () => {
       const { contract, player1, player2 } = await loadFixture(deployFixture);
       await contract.connect(player1).join();
       await expect(await contract.connect(player2).join())
@@ -82,7 +86,7 @@ describe(CONTRACT_NAME, function () {
       expect(await contract.gameStatus()).to.equal(Playing);
     });
 
-    it("does not allow to play againt your self", async function () {
+    it("does not allow to play againt your self", async () => {
       const { contract, player1 } = await loadFixture(deployFixture);
       await contract.connect(player1).join();
       await expect(
@@ -93,7 +97,7 @@ describe(CONTRACT_NAME, function () {
       );
     });
 
-    it("does not allow a third player to join", async function () {
+    it("does not allow a third player to join", async () => {
       const { contract, player1, player2, otherAccount } = await loadFixture(
         deployFixture
       );
@@ -108,8 +112,8 @@ describe(CONTRACT_NAME, function () {
     });
   });
 
-  describe("move()", function () {
-    it("cannot be called if not playing", async function () {
+  describe("move()", () => {
+    it("cannot be called if not playing", async () => {
       const { contract, player1, player2 } = await loadFixture(deployFixture);
       await contract.connect(player1).join();
       await expect(
@@ -117,7 +121,7 @@ describe(CONTRACT_NAME, function () {
       ).to.be.revertedWithCustomError(contract, error.CannotMoveNow);
     });
 
-    it("does not allow to choose the same space twice", async function () {
+    it("does not allow to choose the same space twice", async () => {
       const { contract, player1, player2 } = await loadFixture(
         startGameFixture
       );
@@ -127,7 +131,7 @@ describe(CONTRACT_NAME, function () {
       ).to.be.revertedWithCustomError(contract, error.GridPositionAlreadyTaken);
     });
 
-    it("checks that player moves during his/her turn", async function () {
+    it("checks that player moves during his/her turn", async () => {
       const { contract, player1, player2 } = await loadFixture(
         startGameFixture
       );
@@ -138,7 +142,7 @@ describe(CONTRACT_NAME, function () {
       ).to.be.revertedWithCustomError(contract, error.CannotMoveNow);
     });
 
-    it("does not allow to move players other than player1 and player2", async function () {
+    it("does not allow to move players other than player1 and player2", async () => {
       const { contract, player1, player2, otherAccount } = await loadFixture(
         startGameFixture
       );
@@ -150,8 +154,8 @@ describe(CONTRACT_NAME, function () {
     });
   });
 
-  describe("isWinCombination", async function () {
-    it("works", async function () {
+  describe("isWinCombination", async () => {
+    it("works", async () => {
       const { contract } = await loadFixture(startGameFixture);
 
       expect(await contract.isWinCombination(0, 1, 2)).to.be.true;
@@ -165,8 +169,8 @@ describe(CONTRACT_NAME, function () {
     });
   });
 
-  describe("Game", function () {
-    it("win with combination [0, 1, 2]", async function () {
+  describe("Game", () => {
+    it("win with combination [0, 1, 2]", async () => {
       const { contract, player1, player2 } = await loadFixture(
         startGameFixture
       );
