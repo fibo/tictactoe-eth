@@ -1,11 +1,5 @@
-import {
-  FC,
-  PointerEventHandler,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
-import { useMetaMask } from "../hooks/useMetaMask";
+import { FC, PointerEventHandler, useCallback, useState } from "react";
+import { MetaMaskInpageProvider } from "../hooks/useMetaMask";
 import type {
   AddWalletAddress,
   ResetWallet,
@@ -16,17 +10,18 @@ const HARDHAT_NETWORK_ID = "31337";
 
 type Props = {
   addWalletAddress: AddWalletAddress;
+  metaMask: MetaMaskInpageProvider | undefined;
   resetWallet: ResetWallet;
+  setErrorMessage: (_: string) => void;
+  walletAddress?: WalletAddress;
 };
 
-export const ConnectWallet: FC<Props> = ({ addWalletAddress, resetWallet }) => {
-  const [errorMessage, setErrorMessage] = useState("");
-  const [walletAddress, setWalletAddress] = useState<
-    WalletAddress | undefined
-  >();
-
-  const metaMask = useMetaMask();
-
+export const ConnectWallet: FC<Props> = ({
+  addWalletAddress,
+  metaMask,
+  setErrorMessage,
+  walletAddress,
+}) => {
   const onClickConnect = useCallback<PointerEventHandler<HTMLButtonElement>>(
     async (event) => {
       event.stopPropagation();
@@ -43,12 +38,12 @@ export const ConnectWallet: FC<Props> = ({ addWalletAddress, resetWallet }) => {
         method: "eth_requestAccounts",
       });
 
-      const walletAddress =
+      const newWalletAddress =
         Array.isArray(requestAccounts) && typeof requestAccounts[0] === "string"
           ? requestAccounts[0]
           : undefined;
 
-      if (typeof walletAddress !== "string") {
+      if (typeof newWalletAddress !== "string") {
         setErrorMessage("Could not find wallet address");
         return;
       }
@@ -60,57 +55,17 @@ export const ConnectWallet: FC<Props> = ({ addWalletAddress, resetWallet }) => {
         return;
       }
 
-      setWalletAddress(walletAddress);
+      addWalletAddress(newWalletAddress);
     },
-    [metaMask, setErrorMessage, setWalletAddress]
+    [addWalletAddress, metaMask, setErrorMessage]
   );
 
-  useEffect(() => {
-    if (!metaMask || !walletAddress) return;
-    console.log(metaMask);
-
-    addWalletAddress(walletAddress);
-
-    const onChainChanged = (addresses: unknown) => {
-      resetWallet();
-
-      const newWalletAddress =
-        Array.isArray(addresses) && typeof addresses[0] === "string"
-          ? addresses[0]
-          : undefined;
-      setWalletAddress(newWalletAddress);
-    };
-
-    const onAccountsChanged = () => {
-      resetWallet();
-    };
-
-    const removeMetaMaskListeners = () => {
-      metaMask.removeListener("accountsChanged", onAccountsChanged);
-      metaMask.removeListener("chainChanged", onChainChanged);
-    };
-
-    removeMetaMaskListeners();
-
-    metaMask.on("accountsChanged", onAccountsChanged);
-    metaMask.on("chainChanged", onChainChanged);
-
-    return () => {
-      removeMetaMaskListeners();
-    };
-  }, [
-    addWalletAddress,
-    metaMask,
-    resetWallet,
-    setWalletAddress,
-    walletAddress,
-  ]);
+  if (walletAddress) return null;
 
   return (
     <div>
       <div>connect wallet</div>
       <button onClick={onClickConnect}>connect</button>
-      {errorMessage ? <div>{errorMessage}</div> : null}
     </div>
   );
 };

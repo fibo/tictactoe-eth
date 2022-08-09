@@ -10,6 +10,7 @@
     "tsc--noEmit": "tsc --noEmit --project ."
   },
   "dependencies": {
+    "@metamask/detect-provider": "^1.2.0",
     "@metamask/providers": "^9.1.0",
     "@types/node": "^16.11.47",
     "@types/react": "^18.0.15",

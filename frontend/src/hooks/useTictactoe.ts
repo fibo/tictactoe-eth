@@ -1,9 +1,11 @@
 import { ethers } from "ethers";
-import contractArtifact from "../contracts/contractArtifact.json";
-import contractAddress from "../contracts/contractAddress.json";
+import contractArtifact from "../contracts/TictactoeGameArtifact.json";
+import contractAddress from "../contracts/TictactoeGameAddress.json";
 import type { WalletAddress } from "./useWallet";
 
-export const useTictactoe = (walletAddress: WalletAddress) => {
+export const useTictactoe = (walletAddress?: WalletAddress) => {
+  if (!walletAddress) return;
+
   const ethereum = global?.window?.ethereum;
   if (!ethereum || !walletAddress) return;
 

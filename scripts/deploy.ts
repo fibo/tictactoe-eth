@@ -2,17 +2,18 @@ import path from "path";
 import fs from "fs/promises";
 import { artifacts, ethers, network } from "hardhat";
 
+const CONTRACT_NAME = "TictactoeGame";
+const LIBRARY_NAME = "TictactoeUtils";
+
 const contractsDir = path.join(__dirname, "..", "frontend", "src", "contracts");
 const contractAddressJsonFilepath = path.join(
   contractsDir,
-  "contractAddress.json"
+  `${CONTRACT_NAME}Address.json`
 );
 const contractArtifactJsonFilepath = path.join(
   contractsDir,
-  "contractArtifact.json"
+  `${CONTRACT_NAME}Artifact.json`
 );
-
-const CONTRACT_NAME = "TictactoeGame";
 
 async function main() {
   if (network.name === "hardhat") {
@@ -28,11 +29,15 @@ async function main() {
 
   console.info("Deploying the contracts with the account:", deployerAddress);
 
-  const Contract = await ethers.getContractFactory(CONTRACT_NAME);
+  const Library = await ethers.getContractFactory(LIBRARY_NAME);
+  const library = await Library.deploy();
+  const Contract = await ethers.getContractFactory(CONTRACT_NAME, {
+    libraries: { [LIBRARY_NAME]: library.address },
+  });
   const contract = await Contract.deploy();
   await contract.deployed();
   const contractAddress = contract.address;
-  console.info("Contract address:", contractAddress);
+  console.info(`${CONTRACT_NAME} contract address:`, contractAddress);
 
   await fs.writeFile(
     contractAddressJsonFilepath,

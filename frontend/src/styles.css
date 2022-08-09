@@ -1,0 +1,15 @@
+body {
+  margin: 0;
+}
+
+header {
+  height: fit-content;
+  background-color: black;
+  color: white;
+}
+
+.header__wallet-address {
+  padding: 0.5em 1em;
+  font-family: monospace;
+  text-transform: uppercase;
+}
