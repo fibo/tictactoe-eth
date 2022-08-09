@@ -22,4 +22,19 @@ library TictactoeUtils {
 
         return Z3xZ3CoordinateToIndex(x3, y3);
     }
+
+    function isWinCombination (uint8 index1, uint8 index2, uint8 index3) public pure returns (bool) {
+        (uint8 x1, uint8 y1) = indexToZ3xZ3Coordinate(index1);
+        (uint8 x2, uint8 y2) = indexToZ3xZ3Coordinate(index2);
+        (uint8 x3, uint8 y3) = indexToZ3xZ3Coordinate(index2);
+
+        // is vertical
+        if (x1 == x2 && x2 == x3) return true;
+
+        // is horyzontal
+        if (y1 == y2 && y2 == y3) return true;
+
+        // otherwise it can be a diagonal if semi sum matches.
+        return semiSumInZ3xZ3(index1, index2) == index3;
+    }
 }

@@ -65,5 +65,33 @@ describe(LIBRARY_NAME, () => {
             `semiSumInZ3xZ3(${i}, ${j}) == semiSumInZ3xZ3(${j}, ${i})`
           );
     });
+
+    it("is ciclic", async () => {
+      const { library } = await loadFixture(deployFixture);
+
+      for (let i = 0; i <= 8; i++)
+        for (let j = 0; j <= 8; j++) {
+          const k = await library.semiSumInZ3xZ3(i, j);
+          expect(await library.semiSumInZ3xZ3(j, k)).to.equal(
+            i,
+            `semiSumInZ3xZ3(${i}, ${j}) = ${k} => semiSumInZ3xZ3(${j}, ${k}) == ${i}`
+          );
+        }
+    });
+  });
+
+  describe("isWinCombination", async () => {
+    it("works", async () => {
+      const { library } = await loadFixture(deployFixture);
+
+      expect(await library.isWinCombination(0, 1, 2)).to.be.true;
+      expect(await library.isWinCombination(0, 4, 8)).to.be.true;
+      expect(await library.isWinCombination(0, 3, 6)).to.be.true;
+      expect(await library.isWinCombination(1, 4, 7)).to.be.true;
+      expect(await library.isWinCombination(2, 4, 6)).to.be.true;
+      expect(await library.isWinCombination(2, 5, 8)).to.be.true;
+      expect(await library.isWinCombination(3, 4, 5)).to.be.true;
+      expect(await library.isWinCombination(6, 7, 8)).to.be.true;
+    });
   });
 });

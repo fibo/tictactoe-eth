@@ -114,19 +114,6 @@ contract TictactoeGame {
         emit GameStatusChange(GameStatus.WaitingForPlayerOne);
     }
 
-    function isWinCombination (uint8 index1, uint8 index2, uint8 index3) public pure returns (bool) {
-        if (TictactoeUtils.semiSumInZ3xZ3(index1, index2) == index3) return true;
-        // if (index1 == 0 && index2 == 1 && index3 == 2) return true;
-        // if (index1 == 0 && index2 == 4 && index3 == 8) return true;
-        // if (index1 == 0 && index2 == 3 && index3 == 6) return true;
-        // if (index1 == 1 && index2 == 4 && index3 == 7) return true;
-        // if (index1 == 2 && index2 == 4 && index3 == 6) return true;
-        // if (index1 == 2 && index2 == 5 && index3 == 8) return true;
-        // if (index1 == 3 && index2 == 4 && index3 == 5) return true;
-        // if (index1 == 6 && index2 == 7 && index3 == 8) return true;
-        return false;
-    }
-
     function isWinner () private view returns (bool) {
         if (nextChoiceIndex < 4)
             return false;
@@ -139,10 +126,11 @@ contract TictactoeGame {
 
         for (uint8 i = firstIndexOfCurrentPlayer; i <= endOfFirstIndex; i += numPlayers)
             for (uint8 j = i + numPlayers; j <= endOfSecondIndex; j += numPlayers)
-                for (uint8 k = j + numPlayers; k <= endOfThirdIndex; k += numPlayers) {
-                    if (isWinCombination(uint8(playerChoice[i]), uint8(playerChoice[j]), uint8(playerChoice[k])))
-                        return true;
-                }
+                for (uint8 k = j + numPlayers; k <= endOfThirdIndex; k += numPlayers)
+                    if (TictactoeUtils.isWinCombination(
+                        uint8(playerChoice[i]),
+                        uint8(playerChoice[j]),
+                        uint8(playerChoice[k]))) return true;
 
         return false;
     }

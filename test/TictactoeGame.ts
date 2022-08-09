@@ -154,21 +154,6 @@ describe(CONTRACT_NAME, () => {
     });
   });
 
-  describe("isWinCombination", async () => {
-    it("works", async () => {
-      const { contract } = await loadFixture(startGameFixture);
-
-      expect(await contract.isWinCombination(0, 1, 2)).to.be.true;
-      expect(await contract.isWinCombination(0, 4, 8)).to.be.true;
-      expect(await contract.isWinCombination(0, 3, 6)).to.be.true;
-      expect(await contract.isWinCombination(1, 4, 7)).to.be.true;
-      expect(await contract.isWinCombination(2, 4, 6)).to.be.true;
-      expect(await contract.isWinCombination(2, 5, 8)).to.be.true;
-      expect(await contract.isWinCombination(3, 4, 5)).to.be.true;
-      expect(await contract.isWinCombination(6, 7, 8)).to.be.true;
-    });
-  });
-
   describe("Game", () => {
     it("win with combination [0, 1, 2]", async () => {
       const { contract, player1, player2 } = await loadFixture(
