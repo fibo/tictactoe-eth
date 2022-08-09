@@ -16,6 +16,7 @@
     "hardhat:node": "hardhat node",
     "hardhat:test": "hardhat test",
     "prehardhat:check": "npm run tsc--noEmit",
+    "prehardhat:compile": "npm run hardhat:clean",
     "pretsc--noEmit": "npm run hardhat:compile",
     "pretest": "npm run check",
     "test": "npm run hardhat:test",

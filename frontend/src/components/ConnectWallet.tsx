@@ -1,4 +1,4 @@
-import { FC, PointerEventHandler, useCallback, useState } from "react";
+import { FC, PointerEventHandler, useCallback } from "react";
 import { MetaMaskInpageProvider } from "../hooks/useMetaMask";
 import type {
   AddWalletAddress,

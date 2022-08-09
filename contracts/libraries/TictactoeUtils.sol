@@ -4,12 +4,12 @@ pragma solidity ^0.8.9;
 library TictactoeUtils {
     function indexToZ3xZ3Coordinate (uint8 index) public pure returns (uint8, uint8) {
         uint8 x = index % 3;
-        uint8 y = (index -x) /3;
+        uint8 y = ((index -x) /3) % 3;
         return (x, y);
     }
 
     function Z3xZ3CoordinateToIndex (uint8 x, uint8 y) public pure returns (uint8) {
-        return x + y * 3;
+        return (x % 3) + (y % 3) * 3;
     }
 
     function semiSumInZ3xZ3 (uint8 index1, uint8 index2) public pure returns (uint8) {

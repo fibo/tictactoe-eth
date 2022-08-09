@@ -3,20 +3,10 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { deployArtifact } from "./utils";
 import { LIBRARY_NAME } from "./TictactoeUtils";
-
-const WaitingForPlayerOne = 0;
-const WaitingForPlayerTwo = 1;
-const Playing = 2;
-
-const Space0 = 0;
-const Space1 = 1;
-const Space2 = 2;
-const Space3 = 3;
-const Space4 = 4;
-const Space5 = 5;
-const Space6 = 6;
-const Space7 = 7;
-const Space8 = 8;
+import {
+  GameStatus,
+  GridPosition,
+} from "../frontend/src/contracts/TictactoeGame";
 
 const error = {
   CannotPlayAgainstYourSelf: "CannotPlayAgainstYourSelf",
@@ -64,7 +54,9 @@ describe(CONTRACT_NAME, () => {
   describe("Deployment", () => {
     it("starts with default status", async () => {
       const { contract } = await loadFixture(deployFixture);
-      expect(await contract.gameStatus()).to.equal(WaitingForPlayerOne);
+      expect(await contract.gameStatus()).to.equal(
+        GameStatus.WaitingForPlayerOne
+      );
     });
   });
 
@@ -73,8 +65,10 @@ describe(CONTRACT_NAME, () => {
       const { contract, player1 } = await loadFixture(deployFixture);
       await expect(await contract.connect(player1).join())
         .to.emit(contract, event.GameStatusChange)
-        .withArgs(WaitingForPlayerTwo);
-      expect(await contract.gameStatus()).to.equal(WaitingForPlayerTwo);
+        .withArgs(GameStatus.WaitingForPlayerTwo);
+      expect(await contract.gameStatus()).to.equal(
+        GameStatus.WaitingForPlayerTwo
+      );
     });
 
     it("update status to Playing and emit event on second join", async () => {
@@ -82,8 +76,8 @@ describe(CONTRACT_NAME, () => {
       await contract.connect(player1).join();
       await expect(await contract.connect(player2).join())
         .to.emit(contract, event.GameStatusChange)
-        .withArgs(Playing);
-      expect(await contract.gameStatus()).to.equal(Playing);
+        .withArgs(GameStatus.Playing);
+      expect(await contract.gameStatus()).to.equal(GameStatus.Playing);
     });
 
     it("does not allow to play againt your self", async () => {
@@ -117,7 +111,7 @@ describe(CONTRACT_NAME, () => {
       const { contract, player1, player2 } = await loadFixture(deployFixture);
       await contract.connect(player1).join();
       await expect(
-        contract.connect(player2).move(Space1)
+        contract.connect(player2).move(GridPosition.Space1)
       ).to.be.revertedWithCustomError(contract, error.CannotMoveNow);
     });
 
@@ -125,9 +119,9 @@ describe(CONTRACT_NAME, () => {
       const { contract, player1, player2 } = await loadFixture(
         startGameFixture
       );
-      await contract.connect(player1).move(Space1);
+      await contract.connect(player1).move(GridPosition.Space1);
       await expect(
-        contract.connect(player2).move(Space1)
+        contract.connect(player2).move(GridPosition.Space1)
       ).to.be.revertedWithCustomError(contract, error.GridPositionAlreadyTaken);
     });
 
@@ -135,10 +129,10 @@ describe(CONTRACT_NAME, () => {
       const { contract, player1, player2 } = await loadFixture(
         startGameFixture
       );
-      await contract.connect(player1).move(Space1);
-      await contract.connect(player2).move(Space2);
+      await contract.connect(player1).move(GridPosition.Space1);
+      await contract.connect(player2).move(GridPosition.Space2);
       await expect(
-        contract.connect(player2).move(Space3)
+        contract.connect(player2).move(GridPosition.Space3)
       ).to.be.revertedWithCustomError(contract, error.CannotMoveNow);
     });
 
@@ -146,10 +140,10 @@ describe(CONTRACT_NAME, () => {
       const { contract, player1, player2, otherAccount } = await loadFixture(
         startGameFixture
       );
-      await contract.connect(player1).move(Space1);
-      await contract.connect(player2).move(Space2);
+      await contract.connect(player1).move(GridPosition.Space1);
+      await contract.connect(player2).move(GridPosition.Space2);
       await expect(
-        contract.connect(otherAccount).move(Space3)
+        contract.connect(otherAccount).move(GridPosition.Space3)
       ).to.be.revertedWithCustomError(contract, error.CannotMoveNow);
     });
   });
@@ -159,14 +153,16 @@ describe(CONTRACT_NAME, () => {
       const { contract, player1, player2 } = await loadFixture(
         startGameFixture
       );
-      await contract.connect(player1).move(Space0);
-      await contract.connect(player2).move(Space7);
-      await contract.connect(player1).move(Space1);
-      await contract.connect(player2).move(Space8);
-      await expect(await contract.connect(player1).move(Space2))
+      await contract.connect(player1).move(GridPosition.Space0);
+      await contract.connect(player2).move(GridPosition.Space7);
+      await contract.connect(player1).move(GridPosition.Space1);
+      await contract.connect(player2).move(GridPosition.Space8);
+      await expect(await contract.connect(player1).move(GridPosition.Space2))
         .to.emit(contract, event.Winner)
         .withArgs(player1.address);
-      expect(await contract.gameStatus()).to.equal(WaitingForPlayerOne);
+      expect(await contract.gameStatus()).to.equal(
+        GameStatus.WaitingForPlayerOne
+      );
     });
   });
 });
